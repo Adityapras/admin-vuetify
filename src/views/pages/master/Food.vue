@@ -24,56 +24,149 @@
                       ></v-text-field>
                       <v-text-field
                         class="mt-4"
-                        v-model="params.menu_name"
-                        label="Menu Name"
+                        v-model="params.name"
+                        label="Food Name"
                         persistent-hint
                         outlined
-                        :rules="optionsRules.menuRules"
+                        :rules="rules.name"
                       ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" md="4">
-                      <v-text-field
+                      <v-combobox
                         class="mt-4"
-                        v-model="params.link"
-                        label="Menu Link"
+                        v-model="params.ingredients"
+                        :items="ingredients"
+                        hide-selected
+                        label="Ingredients"
+                        multiple
                         persistent-hint
+                        small-chips
                         outlined
-                        :rules="optionsRules.linkRules"
-                      ></v-text-field>
+                        deletable-chips
+                        item-color="primary"
+                        :rules="rules.ingredients"
+                      >
+                        <template
+                          v-slot:selection="{ attrs, item, parent, selected }"
+                        >
+                          <v-chip
+                            v-bind="attrs"
+                            :color="`blue lighten-4`"
+                            :input-value="selected"
+                            label
+                            small
+                          >
+                            <span class="pr-2">
+                              {{ item }}
+                            </span>
+                            <v-icon small @click="parent.selectItem(item)">
+                              $delete
+                            </v-icon>
+                          </v-chip>
+                        </template>
+                        <template v-slot:no-data>
+                          <v-list-item>
+                            <v-list-item-content>
+                              <v-list-item-title>
+                                Press <kbd>enter</kbd> to create a new one
+                              </v-list-item-title>
+                            </v-list-item-content>
+                          </v-list-item>
+                        </template>
+                      </v-combobox>
+                      <v-textarea
+                        class="mt-4"
+                        outlined
+                        v-model="params.description"
+                        name="input-7-4"
+                        label="Description"
+                      ></v-textarea>
                     </v-col>
                     <v-col cols="12" md="4">
-                      <v-autocomplete
-                        v-model="params.parent"
-                        item-value="code"
-                        item-text="label"
-                        label="- Select Parent -"
+                      <vuetify-money
+                        class="mt-4"
+                        v-model="params.price"
+                        outlined
+                        label="Food Price"
                         clearable
-                        :items="parent"
-                        class="mt-4"
-                        outlined
-                        solo
-                      ></v-autocomplete>
-                    </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col cols="12" md="4">
+                        :options="priceDefault"
+                        valueWhenIsEmpty="0"
+                        :rules="rules.price"
+                      >
+                        {{ params.price }}
+                      </vuetify-money>
                       <v-text-field
                         class="mt-4"
-                        v-model="params.menu_show_order"
-                        label="Menu Order"
+                        v-model="params.rate"
+                        label="Rate"
                         persistent-hint
                         outlined
-                        :rules="optionsRules.showOrderRules"
+                        type="number"
+                        :rules="rules.rate"
+                        max="5"
                       ></v-text-field>
                     </v-col>
                     <v-col cols="12" md="4">
-                      <v-text-field
+                      <v-combobox
                         class="mt-4"
-                        v-model="params.icon"
-                        label="Menu Icon"
+                        v-model="params.types"
+                        :items="tags"
+                        hide-selected
+                        label="Types"
+                        hint="recommended, popular, new"
+                        multiple
                         persistent-hint
+                        small-chips
                         outlined
-                      ></v-text-field>
+                        deletable-chips
+                        item-color="primary"
+                        :rules="rules.types"
+                      >
+                        <template
+                          v-slot:selection="{ attrs, item, parent, selected }"
+                        >
+                          <v-chip
+                            v-bind="attrs"
+                            :color="`blue lighten-4`"
+                            :input-value="selected"
+                            label
+                            small
+                          >
+                            <span class="pr-2">
+                              {{ item }}
+                            </span>
+                            <v-icon small @click="parent.selectItem(item)">
+                              $delete
+                            </v-icon>
+                          </v-chip>
+                        </template>
+                        <template v-slot:no-data>
+                          <v-list-item>
+                            <v-list-item-content>
+                              <v-list-item-title>
+                                Press <kbd>enter</kbd> to create a new one
+                              </v-list-item-title>
+                            </v-list-item-content>
+                          </v-list-item>
+                        </template>
+                      </v-combobox>
+                      <v-file-input
+                        class="mt-4"
+                        v-model="params.picturePath"
+                        color="primary"
+                        counter
+                        label="Food Picture"
+                        placeholder="Select your files"
+                        prepend-icon="mdi-paperclip"
+                        outlined
+                        :show-size="1000"
+                        accept="image/png, image/jpeg, image/jpg"
+                        :rules="rules.picturePath"
+                      >
+                        <template v-slot:selection="{ index, text }">
+                          <v-chip color="primary" dark label small>
+                            {{ text }}
+                          </v-chip>
+                        </template>
+                      </v-file-input>
                     </v-col>
                   </v-row>
                 </v-form>
@@ -96,16 +189,13 @@
           <!-- End Edit & Add Data  -->
 
           <v-card v-if="actionDelete">
-            <v-card-title class="text-h5 red lighten-1">
-              Delete Data
+            <v-card-title class="text-h5 red lighten-1" text>
+              <span style="color:white">Delete Data</span> 
             </v-card-title>
             <br />
             <v-card-text>
               Are you sure to delete this data
-              <p class="font-weight-black">
-                {{params.name}} ?
-              </p>
-              
+              <p class="font-weight-black">{{ params.name }} ?</p>
             </v-card-text>
 
             <v-divider></v-divider>
@@ -128,7 +218,7 @@
       </v-dialog>
       <template>
         <v-snackbar :timeout="2000" top v-model="snackbar">
-          Form Input Can't Be Empty
+          {{ snackbarMessage }}
           <template v-slot:action="{ attrs }">
             <v-btn color="red" text v-bind="attrs" @click="snackbar = false">
               Close
@@ -142,7 +232,7 @@
     <!-- datatables serverside  -->
     <v-card color="#42b983" tile dark>
       <v-card-title
-        ><v-icon>mdi-dots-vertical</v-icon>Master Menu
+        ><v-icon>mdi-dots-vertical</v-icon>Master Food
         <v-spacer></v-spacer>
         <v-icon @click="refreshTable">fas fa-sync-alt</v-icon>
       </v-card-title>
@@ -151,7 +241,7 @@
       <v-card-title>
         <v-row align="center" justify="end">
           <v-btn @click="addItem" text color="#42b983"
-            ><v-icon left>fas fa-plus-square</v-icon> Add New Menu</v-btn
+            ><v-icon left>fas fa-plus-square</v-icon> Add New Food</v-btn
           >
           <v-spacer></v-spacer>
           <v-text-field
@@ -193,12 +283,21 @@
           <v-icon>{{ item.icon }}</v-icon>
         </template>
         <template v-slot:item.actions="{ item }">
-          <v-icon small class="mr-2" @click="editItem(item)">
-            mdi-pencil
+          <v-icon outlined color="primary"  class="mr-2" @click="editItem(item)">
+            far fa-edit
           </v-icon>
-          <v-icon small @click="deleteConfirm(item)">
-            mdi-delete
+          <v-icon outlined color="error"  @click="deleteConfirm(item)">
+            far fa-trash-alt
           </v-icon>
+        </template>
+        <template v-slot:item.picturePath="{ item }">
+          <v-img
+            :lazy-src="item.picturePath"
+            max-height="50"
+            max-width="50"
+            :src="item.picturePath"
+            contain
+          ></v-img>
         </template>
       </v-data-table>
     </v-card>
@@ -210,7 +309,7 @@
 
 <script>
 import axios from "axios";
-import GlobalVarConfig from "../config/globalVariable";
+import GlobalVarConfig from "../../../config/globalVariable";
 
 export default {
   // name: "Home",
@@ -226,17 +325,20 @@ export default {
       isAlert: false,
       setLoading: false,
       snackbar: false,
+      snackbarMessage: "",
       Deselect: {
         render: (createElement) => createElement("span", "❌"),
       },
       valid: true,
       params: {
         id: "",
-        menu_name: "",
-        link: "",
-        parent: "",
-        menu_show_order: "",
-        icon: "",
+        name: "Nasi Goreng",
+        description: "test",
+        ingredients: [],
+        price: 50000,
+        rate: 5,
+        types: "",
+        picturePath: [],
       },
       dialog: false,
       parent: [],
@@ -255,37 +357,63 @@ export default {
           value: "no",
         },
         {
-          text: "Menu Name",
+          text: "Food Name",
           align: "start",
           // sortable: false,
           value: "name",
         },
-        { text: "Link", value: "link" },
-        { text: "Parent", value: "parent_name" },
-        { text: "Menu Show Order", value: "order" },
-        { text: "Icon", value: "icon" },
+        { text: "Description", value: "description" },
+        { text: "Ingredients", value: "ingredients" },
+        { text: "Price", value: "price" },
+        { text: "Rate", value: "rate" },
+        { text: "Type", value: "types" },
+        { text: "Picture", value: "picturePath" },
         { text: "Actions", value: "actions", sortable: false },
       ],
-      optionsRules: {
-        menuRules: [(v) => !!v || "Menu Name is required"],
-        linkRules: [(v) => !!v || "Link is required"],
-        showOrderRules: [(v) => !!v || "Show Order is required"],
+      rules: {
+        name: [(v) => !!v || "Food Name is required"],
+        rate: [(v) => v < 5 || "Maximal Rate is '5' "],
+        ingredients: [(v) => !!v || "Ingredients is required"],
+        types: [(v) => !!v || "Types is required"],
+        price: [(v) => !!v || "Price is required"],
+        picturePath: [
+          (v) =>
+            v?.size < 2 * 1024 * 1024 ||
+            "Picture size should  be less than 2 MB !",
+        ],
+      },
+      ingredients: [],
+      tags: [],
+      priceDefault: {
+        locale: "pt-BR",
+        prefix: "Rp",
+        suffix: "IDR",
+        length: 11,
+        precision: 2,
       },
     };
   },
   watch: {
-    options: {
-      handler() {
-        this.getDataFromApi();
-      },
-      deep: true,
-    },
+    // options: {
+    //   handler() {
+    //     this.getDataFromApi();
+    //   },
+    //   deep: true,
+    // },
+    // model(val) {
+    //   if (val.length > 5) {
+    //     this.$nextTick(() => this.model.pop());
+    //   }
+    // },
     // dialog(val) {
     //   val || this.close();
     // },
   },
-  mounted() {
-    // this.getDataFromApi();
+  created() {
+    if (!this.$store.getters.isLoggedIn) {
+      this.$router.push("/login");
+    }
+    this.getDataFromApi();
   },
   methods: {
     clearParams() {
@@ -303,53 +431,32 @@ export default {
       this.actionTo = "update";
       this.params = {
         id: item.id,
-        menu_name: item.name,
-        link: item.link,
-        parent: item.parent,
-        menu_show_order: item.order,
-        icon: item.icon,
+        name: item.name,
+        description: item.description,
+        ingredients: item.ingredients.split(","),
+        price: item.price,
+        rate: item.rate,
+        types: item.types.split(","),
+        picturePath: [],
       };
-      this.modal.title = "Edit Menu";
+      this.modal.title = "Edit Food";
       this.dialog = true;
     },
     addItem() {
       this.maxWidthDialogDefault = 1000;
       this.actionDelete = false;
       this.actionTo = "store";
-      this.modal.title = "Add New Menu";
+      this.modal.title = "Add New Food";
       this.dialog = true;
     },
     getDataFromApi() {
       this.loading = true;
       axios
-        .get(`${GlobalVarConfig.API_URL}/menu`)
+        .get(`${GlobalVarConfig.API_URL}/food`)
         .then((response) => {
           const { sortBy, sortDesc, page, itemsPerPage } = this.options;
 
-          let findData = response.data.data;
-          let items = [];
-          this.parent = response.data.data.map((item) => {
-            const newParent = {};
-            newParent["label"] = item.name;
-            newParent["code"] = item.id;
-            newParent["icon"] = item.icon;
-
-            return newParent;
-          });
-
-          //get parent name
-          for (let index = 0; index < findData.length; index++) {
-            let lookingFor = findData.filter(
-              (el) => el.id === findData[index].parent
-            );
-            if (lookingFor.length > 0) {
-              findData[index].parent_name = lookingFor[0].name;
-            } else {
-              findData[index].parent_name = "-";
-            }
-            items.push(findData[index]);
-          }
-
+          let items = response.data.data;
           let search = this.search.trim().toLowerCase();
           const total = items.length;
 
@@ -392,25 +499,61 @@ export default {
     },
     actionsApi(actionTo) {
       this.$refs.form.validate();
-      if (this.params.parent === null || this.params.parent === "") {
-        this.params.parent = 0;
+      if (actionTo !== "update") {
+        // file validate
+        if (!this.params.picturePath) {
+          this.snackbar = true;
+          this.snackbarMessage = "File Not Selected !";
+          return;
+        } else {
+          if (this.params.picturePath.size > 2 * 1024 * 1024) {
+            this.snackbar = true;
+            this.snackbarMessage = "Picture size should  be less than 2 MB !";
+            return;
+          } else if (
+            this.params.picturePath.type !==
+            ("image/png" || "image/jpeg" || "image/jpg")
+          ) {
+            this.snackbar = true;
+            this.snackbarMessage = "File type not allowed!";
+            return;
+          }
+        }
       }
 
+      if (this.params.rate > 5) {
+        this.snackbar = true;
+        this.snackbarMessage = "Maximal Rate is '5' ";
+        return;
+      }
       if (
-        this.params.menu_name === "" ||
-        this.params.link === "" ||
-        this.params.menu_show_order === ""
+        this.params.name === "" ||
+        this.params.description === "" ||
+        this.params.ingredients === "" ||
+        this.params.types === "" ||
+        this.params.rate === "" ||
+        this.params.price === ""
       ) {
+        this.snackbarMessage = "Form Input Can't Be Empty";
+
         this.snackbar = true;
         return;
       }
       this.setLoading = true;
+
+      //set form upload image
+      const formData = new FormData();
+
+      formData.append("file", this.params.picturePath);
+      for (const itemlist in this.params) {
+        formData.append(`${itemlist}`, `${this.params[itemlist]}`);
+      }
       axios
-        .post(`${GlobalVarConfig.API_URL}/menu/${actionTo}`, this.params)
+        .post(`${GlobalVarConfig.API_URL}/food/${actionTo}`, formData)
         .then((response) => {
           this.actionsProccess();
           this.alertObj = {
-            message: response.data.message,
+            message: response.data.meta.message,
             type: "success",
           };
           this.getDataFromApi();
@@ -447,12 +590,11 @@ export default {
     deleteItem(item) {
       this.setLoading = true;
       axios
-        .post(`${GlobalVarConfig.API_URL}/menu/delete/${item.id}`)
+        .post(`${GlobalVarConfig.API_URL}/food/delete/${item.id}`)
         .then((response) => {
-          console.log(response)
           this.actionsProccess();
           this.alertObj = {
-            message: response.data.message,
+            message: response.data.meta.message,
             type: "success",
           };
           this.getDataFromApi();
@@ -463,7 +605,7 @@ export default {
         .catch((error) => {
           this.actionsProccess();
           this.alertObj = {
-            message: error.message,
+            message: error.meta.message,
             type: "error",
           };
           this.getDataFromApi();
