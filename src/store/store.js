@@ -2,13 +2,15 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import axios from 'axios';
 import createPersistedState from 'vuex-persistedstate';
+import GlobalVarConfig from '../config/globalVariable';
 
 Vue.use(Vuex);
 
 const getDefaultState = () => {
     return {
         token: '',
-        user: {}
+        user: {},
+        menu: []
     };
 };
 
@@ -22,6 +24,9 @@ export default new Vuex.Store({
         },
         getUser: state => {
             return state.user;
+        },
+        getMenu: state => {
+            return state.menu;
         }
     },
     mutations: {
@@ -33,6 +38,9 @@ export default new Vuex.Store({
         },
         RESET: state => {
             Object.assign(state, getDefaultState());
+        },
+        SET_MENU: (state, menu) => {
+            state.menu = menu;
         }
     },
     actions: {
@@ -52,7 +60,19 @@ export default new Vuex.Store({
             commit
         }) => {
             commit('RESET', '');
-        }
+        },
+        async setMenu({
+            commit
+        }) {
+            await axios
+                .get(`${GlobalVarConfig.API_URL}/menu-recursive`)
+                .then((response) => {
+                    commit('SET_MENU', response.data)
+                })
+                .catch((error) => {
+                    commit('SET_MENU', [])
+                });
+        },
     },
 
 });

@@ -1,4 +1,4 @@
-const API_URL = 'http://food-market-backend.test/api/backside';
+const API_URL = 'https://api.adityaprasetyo.my.id/api/backside';
 
 export default {
     API_URL

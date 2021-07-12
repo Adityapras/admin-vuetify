@@ -15,22 +15,27 @@ const routes = [{
     name: 'Dashboard',
     component: Dashboard,
     children: [{
-      path: '/master/menu',
-      name: 'Menu',
-      component: () => import( /* webpackChunkName: "demo" */ '../views/pages/master/Menu.vue')
-    }, {
-      path: '/master/food',
-      name: 'Food',
-      component: () => import( /* webpackChunkName: "demo" */ '../views/pages/master/Food.vue')
-    }, ]
+        path: 'menu',
+        name: 'Menu',
+        component: () => import('../views/pages/master/Menu.vue')
+      }, {
+        path: 'food',
+        name: 'Food',
+        component: () => import('../views/pages/master/Food.vue')
+      }, {
+        path: 'user',
+        name: 'User',
+        component: () => import('../views/pages/master/User.vue')
+      },
+      {
+        path: '*',
+        component: () => import('../views/pages/NotFound.vue')
+      }
+    ]
   },
   {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import( /* webpackChunkName: "about" */ '../views/About.vue')
+    path: '*',
+    component: () => import('../views/pages/NotFound.vue')
   }
 ]
 

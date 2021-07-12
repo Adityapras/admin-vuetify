@@ -89,7 +89,7 @@ export default {
           const token = response.data.data.access_token;
           const user = response.data.data.user;
           this.$store.dispatch("login", { token, user });
-          this.$router.push("/master/food");
+          this.$router.push("/");
         })
         .catch((error) => {
           this.isError = true;
